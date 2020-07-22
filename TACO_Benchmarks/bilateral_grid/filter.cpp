@@ -2,6 +2,8 @@
 #include <cstdlib>
 #include <cassert>
 
+
+
 #include "bilateral_grid.h"
 #ifndef NO_AUTO_SCHEDULE
 #include "bilateral_grid_auto_schedule_store.h"
@@ -14,6 +16,7 @@
 #include "HalideBuffer.h"
 #include "halide_image_io.h"
 
+using namespace std;
 using namespace Halide::Tools;
 using namespace Halide::Runtime;
 
@@ -27,12 +30,17 @@ int main(int argc, char **argv) {
     float r_sigma = (float) atof(argv[3]);
 #ifdef cuda_alloc
    
-    halide_reuse_device_allocations(nullptr,true);
+    //halide_reuse_device_allocations(nullptr,true);
 #endif
     Buffer<float> input = load_and_convert_image(argv[1]);
     Buffer<float> output(input.width(), input.height());
-    bilateral_grid_auto_schedule(input,r_sigma,output);
+    for (int r = 0; r < 100000; r++) {
+      bilateral_grid_auto_schedule(input,r_sigma,output);
+      cout << "r = " << r << endl;
+    }
     output.device_sync();
+    return 0;
+
     multi_way_bench({
     #ifndef autotune
        {"Manual", [&]() { bilateral_grid(input, r_sigma, output); output.device_sync(); }},

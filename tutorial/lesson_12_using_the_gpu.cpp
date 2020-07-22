@@ -46,14 +46,14 @@ public:
 
         // First we'll define the LUT. It will be a gamma curve.
 
-        lut(i) = cast<uint8_t>(clamp(pow(i / 255.0f, 1.2f) * 255.0f, 0, 255));
+        lut(i) = cast<float>(clamp(pow(cast<float>(i) / 255.0f, 1.2f) * 255.0f, 0, 255));
 
         // Augment the input with a boundary condition.
         padded(x, y, c) = input(clamp(x, 0, input.width()-1),
                                 clamp(y, 0, input.height()-1), c);
 
         // Cast it to 16-bit to do the math.
-        padded16(x, y, c) = cast<uint16_t>(padded(x, y, c));
+        padded16(x, y, c) = cast<float>(padded(x, y, c));
 
         // Next we sharpen it with a five-tap filter.
         sharpen(x, y, c) = (padded16(x, y, c) * 2-
@@ -63,7 +63,7 @@ public:
                              padded16(x, y + 1, c)) / 4);
 
         // Then apply the LUT.
-        curved(x, y, c) = lut(sharpen(x, y, c));
+        curved(x, y, c) = cast<uint8_t>(lut(cast<int>(sharpen(x, y, c))));
     }
 
     // Now we define methods that give our pipeline several different
@@ -272,7 +272,10 @@ int main(int argc, char **argv) {
 
     if (has_gpu_target) {
         printf("Testing performance on GPU:\n");
+
+      for (int r = 0; r < 1000; r++) {
         p2.test_performance();
+      }
     }
 
     return 0;
