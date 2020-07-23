@@ -2,8 +2,6 @@
 #include <cstdlib>
 #include <cassert>
 
-
-
 #include "bilateral_grid.h"
 #ifndef NO_AUTO_SCHEDULE
 #include "bilateral_grid_auto_schedule_store.h"
@@ -30,23 +28,25 @@ int main(int argc, char **argv) {
     float r_sigma = (float) atof(argv[3]);
 #ifdef cuda_alloc
    
-    //halide_reuse_device_allocations(nullptr,true);
+    halide_reuse_device_allocations(nullptr,true);
 #endif
-    Buffer<float> input = load_and_convert_image(argv[1]);
-    Buffer<float> output(input.width(), input.height());
-    for (int r = 0; r < 100000; r++) {
-      bilateral_grid_auto_schedule(input,r_sigma,output);
-      cout << "r = " << r << endl;
-    }
-    output.device_sync();
-    return 0;
 
+    Buffer<float> input = load_and_convert_image(argv[1]);
+    std::cout << "input size = " << input.width() << ", " << input.height() << endl;
+    double input_bytes = sizeof(float)*input.width()*input.height();
+    std::cout << "input size bytes = " << input_bytes << endl;
+    double input_mb = input_bytes / 1000000.0;
+    cout << "input size = " << input_mb << " MB" << endl;
+
+    Buffer<float> output(input.width(), input.height());
+    bilateral_grid_auto_schedule(input,r_sigma,output);
+    output.device_sync();
     multi_way_bench({
     #ifndef autotune
        {"Manual", [&]() { bilateral_grid(input, r_sigma, output); output.device_sync(); }},
-       {"Simple auto-scheduled", [&]() { bilateral_grid_simple_auto_schedule(input, r_sigma, output); output.device_sync(); }},
+       {"Simple auto-scheduled", [&]() { bilateral_grid_simple_auto_schedule(input, r_sigma, output); output.copy_to_host(); output.device_sync(); }},
     #endif
-        {"Nested auto-scheduled", [&]() { bilateral_grid_auto_schedule_store(input, r_sigma, output); output.device_sync(); }},
+        {"Nested auto-scheduled", [&]() { bilateral_grid_auto_schedule_store(input, r_sigma, output); output.copy_to_host(); output.device_sync(); }},
 	{"No-fusion auto-scheduled", [&]() { bilateral_grid_auto_schedule_no_fus(input, r_sigma, output); output.device_sync(); }},
  
         {"Auto-scheduled", [&]() { bilateral_grid_auto_schedule(input, r_sigma, output); output.device_sync(); }}
