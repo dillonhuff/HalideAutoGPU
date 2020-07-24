@@ -24,18 +24,18 @@ public:
     Var x, y, c;
 
     Func downsample(Func f) {
-      Func ds;
-      ds(x, y) = (3*f(2*x + 1, 2*y) + f(2*x, 2*y));
-      return ds;
-
-      //RDom reduce(-1, 1, -1, 1);
-
       //Func ds;
-      //ds(x, y) = 0;
-      //ds(x, y) += f(x + reduce.x, y + reduce.y);
-      //Func avg;
-      //avg(x, y) = ds(x, y) / Expr(9);
-      //return avg;
+      //ds(x, y) = (3*f(2*x + 1, 2*y) + f(2*x, 2*y));
+      //return ds;
+
+      RDom reduce(-1, 1, -1, 1);
+
+      Func ds;
+      ds(x, y) = 0;
+      ds(x, y) += f(x + reduce.x, y + reduce.y);
+      Func avg;
+      avg(x, y) = ds(x, y) / Expr(9);
+      return avg;
     }
 
     void generate() {
