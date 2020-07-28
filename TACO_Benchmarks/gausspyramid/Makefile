@@ -27,8 +27,8 @@ $(BIN)/gausspyramid_simple_auto_schedule.a: $(BIN)/gausspyramid.generator
 
 $(BIN)/gausspyramid_auto_schedule_store.a: $(BIN)/gausspyramid.generator $(AUTOSCHED_BIN)/libauto_schedule.so
 	@mkdir -p $(@D)
-	HL_AUTO_FOLDED_FUSION=1 \
-	$<  -g gausspyramid -o $(BIN) -f gausspyramid_auto_schedule_store target=$(HL_TARGET) auto_schedule=true  -p $(AUTOSCHED_BIN)/libauto_schedule.so -e static_library,h,schedule 
+	#HL_AUTO_FOLDED_FUSION=1 \
+	#$<  -g gausspyramid -o $(BIN) -f gausspyramid_auto_schedule_store target=$(HL_TARGET) auto_schedule=true  -p $(AUTOSCHED_BIN)/libauto_schedule.so -e static_library,h,schedule 
 
 
 $(BIN)/gausspyramid_auto_schedule_no_fus.a: $(BIN)/gausspyramid.generator $(AUTOSCHED_BIN)/libauto_schedule.so

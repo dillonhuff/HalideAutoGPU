@@ -1,13 +1,13 @@
 #include <cstdio>
 #include <chrono>
 // Hello this is a comment I am a comment
-// Yet another comment
-#include "gausspyramid.h"
+// Yet another comment hello
+#include "deepcamera.h"
 #ifndef NO_AUTO_SCHEDULE
-//#include "gausspyramid_auto_schedule_store.h"
-#include "gausspyramid_auto_schedule.h"
-#include "gausspyramid_simple_auto_schedule.h"
-#include "gausspyramid_auto_schedule_no_fus.h"
+#include "deepcamera_auto_schedule_store.h"
+#include "deepcamera_auto_schedule.h"
+#include "deepcamera_simple_auto_schedule.h"
+#include "deepcamera_auto_schedule_no_fus.h"
 #endif
 
 #include "benchmark_util.h"
@@ -30,21 +30,21 @@ int main(int argc, char **argv) {
     // Input may be a PNG8
     Buffer<uint16_t> input = load_and_convert_image(argv[1]);
 
-    Buffer<uint16_t> output(32, 32);
-    //for (int r = 0; r < 1000000; r++) {
-    gausspyramid(input, output); 
-    output.device_sync(); 
-    //}
+    Buffer<uint16_t> output(2048, 2048);
+    for (int r = 0; r < 1; r++) {
+      deepcamera_auto_schedule(input, output); 
+      output.device_sync(); 
+    }
     cout << "Done with auto schedule" << endl;
     //return 0;
 
    multi_way_bench({
-        {"Manual", [&]() { gausspyramid(input, output); output.device_sync(); }},
+        //{"Manual", [&]() { deepcamera(input, output); output.device_sync(); }},
     #ifndef NO_AUTO_SCHEDULE
-        //{"Nested auto-scheduled", [&]() { gausspyramid_auto_schedule_store(input, output); output.device_sync(); }},
-       {"Auto-scheduled", [&]() { gausspyramid_auto_schedule(input, output); output.device_sync(); }},
-          {"No-fusion auto-scheduled", [&]() { gausspyramid_auto_schedule_no_fus(input, output); output.device_sync(); }},
-        {"Simple auto-scheduled", [&]() { gausspyramid_simple_auto_schedule(input, output); output.device_sync(); }}
+        {"Nested auto-scheduled", [&]() { deepcamera_auto_schedule_store(input, output); output.device_sync(); }},
+       {"Auto-scheduled", [&]() { deepcamera_auto_schedule(input, output); output.device_sync(); }},
+          {"No-fusion auto-scheduled", [&]() { deepcamera_auto_schedule_no_fus(input, output); output.device_sync(); }},
+        //{"Simple auto-scheduled", [&]() { deepcamera_simple_auto_schedule(input, output); output.device_sync(); }}
     #endif
         }
     );
