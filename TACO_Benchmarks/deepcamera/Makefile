@@ -14,28 +14,28 @@ $(BIN)/deepcamera.generator: deepcamera_generator.cpp ../autoscheduler/SimpleAut
 
 $(BIN)/deepcamera.a: $(BIN)/deepcamera.generator
 	@mkdir -p $(@D)
-	$^ -g deepcamera -o $(BIN) -f deepcamera target=$(HL_TARGET)-no_runtime-debug auto_schedule=false
+	$^ -g deepcamera -o $(BIN) -f deepcamera target=$(HL_TARGET)-no_runtime auto_schedule=false
 
 
 $(BIN)/deepcamera_auto_schedule.a: $(BIN)/deepcamera.generator $(AUTOSCHED_BIN)/libauto_schedule.so
 	@mkdir -p $(@D)
-	$< -g deepcamera -o $(BIN) -f deepcamera_auto_schedule target=$(HL_TARGET)-debug auto_schedule=true -p $(AUTOSCHED_BIN)/libauto_schedule.so  -e static_library,h,schedule
+	$< -g deepcamera -o $(BIN) -f deepcamera_auto_schedule target=$(HL_TARGET) auto_schedule=true -p $(AUTOSCHED_BIN)/libauto_schedule.so  -e static_library,h,schedule
 
 $(BIN)/deepcamera_simple_auto_schedule.a: $(BIN)/deepcamera.generator
 	@mkdir -p $(@D)
 	HL_USE_SIMPLE_AUTOSCHEDULER=1 \
-	$< -g deepcamera -o $(BIN) -f deepcamera_simple_auto_schedule target=$(HL_TARGET)-no_runtime-debug auto_schedule=false -e static_library,h
+	$< -g deepcamera -o $(BIN) -f deepcamera_simple_auto_schedule target=$(HL_TARGET)-no_runtime auto_schedule=false -e static_library,h
 
 $(BIN)/deepcamera_auto_schedule_store.a: $(BIN)/deepcamera.generator $(AUTOSCHED_BIN)/libauto_schedule.so
 	@mkdir -p $(@D)
 	HL_AUTO_FOLDED_FUSION=1 \
-	$<  -g deepcamera -o $(BIN) -f deepcamera_auto_schedule_store target=$(HL_TARGET)-debug auto_schedule=true  -p $(AUTOSCHED_BIN)/libauto_schedule.so -e static_library,h,schedule 
+	$<  -g deepcamera -o $(BIN) -f deepcamera_auto_schedule_store target=$(HL_TARGET) auto_schedule=true  -p $(AUTOSCHED_BIN)/libauto_schedule.so -e static_library,h,schedule 
 
 
 $(BIN)/deepcamera_auto_schedule_no_fus.a: $(BIN)/deepcamera.generator $(AUTOSCHED_BIN)/libauto_schedule.so
 	@mkdir -p $(@D)
 	HL_GPU_NO_FUS=1 \
-	$<  -g deepcamera -o $(BIN) -f deepcamera_auto_schedule_no_fus target=$(HL_TARGET)-debug auto_schedule=true  -p $(AUTOSCHED_BIN)/libauto_schedule.so -e static_library,h,schedule 
+	$<  -g deepcamera -o $(BIN) -f deepcamera_auto_schedule_no_fus target=$(HL_TARGET) auto_schedule=true  -p $(AUTOSCHED_BIN)/libauto_schedule.so -e static_library,h,schedule 
 
 
 
