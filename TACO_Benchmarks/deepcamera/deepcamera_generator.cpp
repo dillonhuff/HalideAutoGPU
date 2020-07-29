@@ -45,8 +45,14 @@ public:
         //f(2*x - 1, 2*y) + f(2*x, 2*y) + f(2*x + 1, 2*y) +
         //f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1) +
         //f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1);
-      ds(x, y) = (3*f(2*x + 1, 2*y) + f(2*x, 2*y));
+      ds(x, y) = (f(2*x + 1, y) + f(2*x, y)) >> 1;
       return ds;
+
+      //Func vs;
+      //vs(x, y) = (ds(x, 2*y + 1) + ds(x, 2*y)) >> 1;
+      //return vs;
+      //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1)) / 4;
+      //return ds;
 
       //RDom reduce(-1, 1, -1, 1);
 
@@ -76,17 +82,38 @@ public:
 
     vector<Func> gauss_pyramid(Func l0) {
       vector<Func> gPyramid;
+      vector<Func> gPyramid_clamped;
       gPyramid.resize(pyramid_levels);
+      gPyramid_clamped.resize(pyramid_levels);
       gPyramid[0](x, y) =
         l0(x, y);
-
+      gPyramid_clamped[0](x, y) =
+        l0(x, y);
+      Expr w = input.dim(0).extent(), h = input.dim(1).extent();
       for (int j = 1; j < pyramid_levels; j++) {
         gPyramid[j](x, y) =
           downsample(gPyramid[j - 1])(x, y);
+        w /= 2;
+        h /= 2;
+        gPyramid_clamped[j] = BoundaryConditions::repeat_edge(gPyramid[j], {{0, w}, {0, h}});
       }
 
-      return gPyramid;
+      return gPyramid_clamped;
     }
+
+    //vector<Func> gauss_pyramid(Func l0) {
+      //vector<Func> gPyramid;
+      //gPyramid.resize(pyramid_levels);
+      //gPyramid[0](x, y) =
+        //l0(x, y);
+
+      //for (int j = 1; j < pyramid_levels; j++) {
+        //gPyramid[j](x, y) =
+          //downsample(gPyramid[j - 1])(x, y);
+      //}
+
+      //return gPyramid;
+    //}
 
     Func ef(Func in_f) {
         Func bright, dark, bright_weight, dark_weight;

@@ -1,5 +1,7 @@
 #include <cstdio>
 #include <chrono>
+#include <fstream>
+
 // Hello this is a comment I am a comment
 // Yet another comment hello
 #include "deepcamera.h"
@@ -17,6 +19,7 @@
 using namespace std;
 using namespace Halide::Runtime;
 using namespace Halide::Tools;
+using namespace std::chrono;
 
 int main(int argc, char **argv) {
     if (argc < 7) {
@@ -31,14 +34,29 @@ int main(int argc, char **argv) {
     Buffer<uint16_t> input = load_and_convert_image(argv[1]);
 
     Buffer<uint16_t> output(2048, 2048);
-    for (int r = 0; r < 1; r++) {
+    const int num_runs = 10000;
+    __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
+
+    for (int r = 0; r < num_runs; r++) {
+      //cout << "r = " << r << endl;
       deepcamera_auto_schedule(input, output); 
       output.device_sync(); 
     }
-    cout << "Done with auto schedule" << endl;
-    //return 0;
+    __int64_t end_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
-   multi_way_bench({
+    ofstream times("times.csv");
+    times << start_us << endl;
+    times << end_us << endl;
+    times.close();
+
+    cout << "microseconds since epoch: " << end_us << endl;
+    auto diff = end_us - start_us;
+    cout << "diff = " << diff << endl;
+    cout << "per run = " << diff / num_runs << endl;
+    cout << "Done with auto schedule" << endl;
+
+
+    multi_way_bench({
         //{"Manual", [&]() { deepcamera(input, output); output.device_sync(); }},
     #ifndef NO_AUTO_SCHEDULE
         {"Nested auto-scheduled", [&]() { deepcamera_auto_schedule_store(input, output); output.device_sync(); }},
