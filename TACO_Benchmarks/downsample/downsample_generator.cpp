@@ -45,7 +45,7 @@ public:
         //f(2*x - 1, 2*y) + f(2*x, 2*y) + f(2*x + 1, 2*y) +
         //f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1) +
         //f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1);
-      ds(x, y) = (f(2*x + 1, y) + f(2*x, y)) >> 1;
+      ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) >> 1;
       return ds;
 
       //Func vs;
@@ -172,8 +172,8 @@ public:
         output.estimate(x, 0, 2048)
               .estimate(y, 0, 2048);
 
-        output.bound(x, 0, 2048);
-        output.bound(y, 0, 2048);
+        output.bound(x, 0, 1024);
+        output.bound(y, 0, 1024);
 
         if (auto_schedule) {
         }
