@@ -11,6 +11,7 @@ runs = int(lines[2])
 
 print('start = ', start)
 print('end   = ', end)
+print('runs  = ', runs)
 
 power_log = open('power.csv', 'r').readlines()
 print('power logs =', len(power_log))
@@ -38,5 +39,7 @@ throughput = pixels_in / float(duration)
 power_perf = throughput / float(average_power)
 power_perf = power_perf / 1000000000.0
 
+throughput_gp = throughput / 1000000000.0
+print('Throughput    =', throughput_gp, ' GPix / sec')
 print('Power perf    =', power_perf, ' GPix / J')
 
