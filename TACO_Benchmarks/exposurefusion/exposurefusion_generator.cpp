@@ -104,8 +104,8 @@ public:
         bright(x, y) = 2*hw_input(x, y);
         dark(x, y) = hw_input(x, y);
 
-        bright_weight(x, y) = select(bright(x, y) > 128, 5*bright(x, y), bright(x, y));
-        dark_weight(x, y) = select(dark(x, y) < 128, 5*dark(x, y), dark(x, y));
+        bright_weight(x, y) = select(bright(x, y) < 128, 1, 0);
+        dark_weight(x, y) = select(dark(x, y) > 128, 1, 0);
 
         //auto bright_pyramid = gauss_pyramid(bright);
         //auto dark_pyramid = gauss_pyramid(dark);
