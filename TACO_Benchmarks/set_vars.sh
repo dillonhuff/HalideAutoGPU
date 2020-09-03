@@ -7,4 +7,5 @@ export HL_GPU_L2_COST=200
 export HL_GPU_SHARED_COST=1
 export HL_GPU_GLOBAL_COST=1
 export HL_CUDA_JIT_MAX_REGISTERS=256
-export HL_TARGET=host-cuda-cuda_capability_61
+#export HL_TARGET=host-cuda-cuda_capability_61
+export HL_TARGET=host-cuda-cuda_capability_35

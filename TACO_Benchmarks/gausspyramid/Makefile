@@ -40,7 +40,8 @@ $(BIN)/gausspyramid_auto_schedule_no_fus.a: $(BIN)/gausspyramid.generator $(AUTO
 
 
 
-$(BIN)/process: process.cpp $(BIN)/gausspyramid.a $(BIN)/gausspyramid_auto_schedule.a $(BIN)/gausspyramid_simple_auto_schedule.a $(BIN)/gausspyramid_auto_schedule_store.a $(BIN)/gausspyramid_auto_schedule_no_fus.a
+#$(BIN)/process: process.cpp $(BIN)/gausspyramid.a $(BIN)/gausspyramid_auto_schedule.a $(BIN)/gausspyramid_simple_auto_schedule.a $(BIN)/gausspyramid_auto_schedule_store.a $(BIN)/gausspyramid_auto_schedule_no_fus.a
+$(BIN)/process: process.cpp $(BIN)/gausspyramid.a $(BIN)/gausspyramid_auto_schedule.a $(BIN)/gausspyramid_simple_auto_schedule.a $(BIN)/gausspyramid_auto_schedule_no_fus.a
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -I$(BIN) -Wall -O3 $^ -o $@ $(LDFLAGS) $(IMAGE_IO_FLAGS) $(CUDA_LDFLAGS) $(OPENCL_LDFLAGS) $(OPENGL_LDFLAGS)
 
