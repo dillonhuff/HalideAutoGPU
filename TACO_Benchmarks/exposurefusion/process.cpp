@@ -34,6 +34,8 @@ int main(int argc, char **argv) {
     Buffer<uint16_t> input = load_and_convert_image(argv[1]);
 
     Buffer<uint16_t> output(2048, 2048);
+    exposure_fusion_cpu(input, output);
+
     const int num_runs = 10000;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
