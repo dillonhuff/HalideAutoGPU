@@ -7,6 +7,7 @@
 #ifndef NO_AUTO_SCHEDULE
 //#include "max_pool_auto_schedule_store.h"
 #include "max_pool_auto_schedule.h"
+#include "max_pool_cpu.h"
 #include "max_pool_simple_auto_schedule.h"
 #include "max_pool_auto_schedule_no_fus.h"
 #endif
@@ -42,7 +43,11 @@ int main(int argc, char **argv) {
     }
 
     Buffer<uint16_t> output(64, 64, 64);
-    const long int num_runs = 100000;
+    max_pool_cpu(input, output);
+    assert(false);
+
+    //const long int num_runs = 100000;
+    const long int num_runs = 1;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
     for (long int r = 0; r < num_runs; r++) {

@@ -43,6 +43,7 @@ public:
         /* THE ALGORITHM */
 
         Var xo("xo"), yo("yo"), xi("xi"), yi("yi");
+        //input.trace_loads();
 
         Func clamped = Halide::BoundaryConditions::repeat_edge(input);
 
@@ -52,7 +53,7 @@ public:
 
         Func hw_output;
         hw_output(x, y, c) =
-          cast<uint16_t>( hw_input(x / 2, y / 2, c) );
+          cast<uint16_t>( hw_input(x * 2, y * 2, c) );
         output(x, y, c) = hw_output(x, y, c);
 
         input.dim(0).set_bounds_estimate(0, 2048*2);
@@ -67,6 +68,9 @@ public:
         //output.bound(y, 0, 32);
 
         if (auto_schedule) {
+        } else {
+          clamped.trace_loads();
+          clamped.compute_root();
         }
 
     }
