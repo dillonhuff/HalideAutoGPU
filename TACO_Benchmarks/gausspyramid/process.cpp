@@ -35,8 +35,11 @@ int main(int argc, char **argv) {
     // Input may be a PNG8
     Buffer<uint16_t> input = load_and_convert_image(argv[1]);
 
-    Buffer<uint16_t> output(2048 / pow(2, 3), 2048 / pow(2, 3));
+    int cols = 1920;
+    int rows = 1080;
+    Buffer<uint16_t> output(cols / pow(2, 3), rows / pow(2, 3));
     gausspyramid_cpu(input, output);
+    assert(false);
 
     const long int num_runs = 100000;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
