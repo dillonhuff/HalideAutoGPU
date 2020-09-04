@@ -76,6 +76,9 @@ public:
         //output.bound(y, 0, 32);
 
         if (auto_schedule) {
+        } else {
+          clamped.trace_loads();
+          clamped.compute_root();
         }
 
     }

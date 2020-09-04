@@ -8,6 +8,7 @@
 #ifndef NO_AUTO_SCHEDULE
 //#include "exposurefusion_auto_schedule_store.h"
 #include "exposurefusion_auto_schedule.h"
+#include "exposurefusion_cpu.h"
 #include "exposurefusion_simple_auto_schedule.h"
 #include "exposurefusion_auto_schedule_no_fus.h"
 #endif
@@ -33,8 +34,11 @@ int main(int argc, char **argv) {
     // Input may be a PNG8
     Buffer<uint16_t> input = load_and_convert_image(argv[1]);
 
-    Buffer<uint16_t> output(2048, 2048);
-    exposure_fusion_cpu(input, output);
+    int cols = 1920;
+    int rows = 1080;
+    Buffer<uint16_t> output(cols, rows);
+    exposurefusion_cpu(input, output);
+    assert(false);
 
     const int num_runs = 10000;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();

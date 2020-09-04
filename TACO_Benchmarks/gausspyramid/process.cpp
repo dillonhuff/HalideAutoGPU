@@ -7,6 +7,7 @@
 #ifndef NO_AUTO_SCHEDULE
 //#include "gausspyramid_auto_schedule_store.h"
 #include "gausspyramid_auto_schedule.h"
+#include "gausspyramid_cpu.h"
 #include "gausspyramid_simple_auto_schedule.h"
 #include "gausspyramid_auto_schedule_no_fus.h"
 #endif
@@ -35,6 +36,8 @@ int main(int argc, char **argv) {
     Buffer<uint16_t> input = load_and_convert_image(argv[1]);
 
     Buffer<uint16_t> output(2048 / pow(2, 3), 2048 / pow(2, 3));
+    gausspyramid_cpu(input, output);
+
     const long int num_runs = 100000;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 

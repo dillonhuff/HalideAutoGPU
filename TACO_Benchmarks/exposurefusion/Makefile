@@ -11,9 +11,9 @@ $(BIN)/exposurefusion.generator: exposurefusion_generator.cpp ../autoscheduler/S
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -g $(filter-out %.h,$^) -o $@ $(LDFLAGS) $(HALIDE_SYSTEM_LIBS) $(USE_EXPORT_DYNAMIC)
 
-$(BIN)/exposurefusion_cpu.a: $(BIN)/exposure_fusion.generator
+$(BIN)/exposurefusion_cpu.a: $(BIN)/exposurefusion.generator
 	@mkdir -p $(@D)
-	$^ -g exposure_fusion -o $(BIN) -f exposure_fusion_cpu target=host auto_schedule=false
+	$^ -g exposurefusion -o $(BIN) -f exposurefusion_cpu target=host auto_schedule=false
 
 $(BIN)/exposurefusion.a: $(BIN)/exposurefusion.generator
 	@mkdir -p $(@D)
@@ -45,7 +45,7 @@ $(BIN)/exposurefusion_auto_schedule_no_fus.a: $(BIN)/exposurefusion.generator $(
 
 
 #$(BIN)/process: process.cpp $(BIN)/exposurefusion.a $(BIN)/exposurefusion_auto_schedule.a $(BIN)/exposurefusion_simple_auto_schedule.a $(BIN)/exposurefusion_auto_schedule_store.a $(BIN)/exposurefusion_auto_schedule_no_fus.a
-$(BIN)/process: process.cpp $(BIN)/exposurefusion.a $(BIN)/exposurefusion_auto_schedule.a $(BIN)/exposurefusion_simple_auto_schedule.a $(BIN)/exposurefusion_auto_schedule_no_fus.a
+$(BIN)/process: process.cpp $(BIN)/exposurefusion.a $(BIN)/exposurefusion_auto_schedule.a $(BIN)/exposurefusion_simple_auto_schedule.a $(BIN)/exposurefusion_auto_schedule_no_fus.a $(BIN)/exposurefusion_cpu.a
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -I$(BIN) -Wall -O3 $^ -o $@ $(LDFLAGS) $(IMAGE_IO_FLAGS) $(CUDA_LDFLAGS) $(OPENCL_LDFLAGS) $(OPENGL_LDFLAGS)
 
