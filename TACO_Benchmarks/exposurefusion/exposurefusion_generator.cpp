@@ -27,6 +27,12 @@ public:
 
     Var x, y, c;
 
+    Func downsample_fp(Func f) {
+      Func ds;
+      ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
+      return ds;
+    }
+
     Func random_pointwise_stage(Func f) {
       Func ds;
       ds(x, y) = f(x, y)*f(x, y);
@@ -35,7 +41,7 @@ public:
 
     Func upsample(Func f) {
       Func ds;
-      ds(x, y) = f(x / 2, y / 2);
+      ds(x, y) = cast<float>(f(x / 2, y / 2));
       return ds;
     }
 
@@ -83,7 +89,7 @@ public:
 
       for (int j = 1; j < pyramid_levels; j++) {
         gPyramid[j](x, y) =
-          downsample(gPyramid[j - 1])(x, y);
+          downsample_fp(gPyramid[j - 1])(x, y);
       }
 
       return gPyramid;
@@ -99,20 +105,20 @@ public:
         Func clamped = Halide::BoundaryConditions::repeat_edge(input);
 
         Func hw_input, input_copy;
-        input_copy(x, y) = cast<uint16_t>(clamped(x, y));
+        input_copy(x, y) = cast<float>(clamped(x, y));
         hw_input(x, y) = input_copy(x, y);
 
-        bright(x, y) = 2*hw_input(x, y);
+        bright(x, y) = 2.0f*hw_input(x, y);
         dark(x, y) = hw_input(x, y);
 
-        bright_weight(x, y) = select(bright(x, y) < 128, 1, 0);
-        dark_weight(x, y) = select(dark(x, y) > 128, 1, 0);
+        bright_weight(x, y) = select(bright(x, y) < 128.0f, 1.0f, 0.0f);
+        dark_weight(x, y) = select(dark(x, y) > 128.0f, 1.0f, 0.0f);
 
-        //auto bright_pyramid = gauss_pyramid(bright);
-        //auto dark_pyramid = gauss_pyramid(dark);
+        auto bright_pyramid = gauss_pyramid(bright);
+        auto dark_pyramid = gauss_pyramid(dark);
 
-        auto bright_pyramid = laplace_pyramid(bright);
-        auto dark_pyramid = laplace_pyramid(dark);
+        //auto bright_pyramid = laplace_pyramid(bright);
+        //auto dark_pyramid = laplace_pyramid(dark);
 
         auto bright_weight_pyramid = gauss_pyramid(bright_weight);
         auto dark_weight_pyramid = gauss_pyramid(dark_weight);

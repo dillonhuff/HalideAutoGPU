@@ -13,7 +13,7 @@ using namespace Halide;
 //const int blockSize = 3;
 //int imgSize = 1024 / 2 - 1;
 
-const int pyramid_levels = 8;
+const int pyramid_levels = 4;
 
 
 class GaussianBlur : public Halide::Generator<GaussianBlur> {
@@ -38,6 +38,12 @@ public:
       return avg;
     }
 
+    Func downsample_fp(Func f) {
+      Func ds;
+      ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
+      return ds;
+    }
+
     void generate() {
         /* THE ALGORITHM */
 
@@ -47,7 +53,7 @@ public:
 
         Func hw_input, input_copy;
         input_copy(x, y) = cast<uint16_t>(clamped(x, y));
-        hw_input(x, y) = input_copy(x, y);
+        hw_input(x, y) = cast<uint16_t>(input_copy(x, y));
 
         Func gPyramid[pyramid_levels];
         gPyramid[0](x, y) =
@@ -55,6 +61,7 @@ public:
 
         for (int j = 1; j < pyramid_levels; j++) {
           gPyramid[j](x, y) =
+            //downsample_fp(gPyramid[j - 1])(x, y);
             downsample(gPyramid[j - 1])(x, y);
         }
 
@@ -71,8 +78,8 @@ public:
         output.estimate(x, 0, 2048)
               .estimate(y, 0, 2048);
 
-        output.bound(x, 0, 32);
-        output.bound(y, 0, 32);
+        output.bound(x, 0, 256);
+        output.bound(y, 0, 256);
 
         if (auto_schedule) {
         }
