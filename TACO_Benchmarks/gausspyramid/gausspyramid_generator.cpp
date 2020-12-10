@@ -15,11 +15,13 @@ using namespace Halide;
 
 const int pyramid_levels = 4;
 
+typedef uint16_t InPixelType;
+//typedef uint32_t InPixelType;
 
 class GaussianBlur : public Halide::Generator<GaussianBlur> {
 public:
-    Input<Buffer<uint16_t>>  input{"input", 2};
-    Output<Buffer<uint16_t>> output{"output", 2};
+    Input<Buffer<InPixelType>>  input{"input", 2};
+    Output<Buffer<InPixelType>> output{"output", 2};
 
     Var x, y, c;
 
@@ -43,13 +45,15 @@ public:
       //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
       //return ds;
       
-      RDom reduce(-1, 1, -1, 1);
+      //RDom reduce(-1, 1, -1, 1);
+      //RDom reduce(-10, 10, -10, 10);
+      RDom reduce(-1, 2, -1, 2);
 
       Func ds;
-      ds(x, y) = cast(Float(16), (0.0f));
+      ds(x, y) = cast(Int(16), (0));
       ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
       Func avg;
-      avg(x, y) = ds(x, y) / cast(Float(16), Expr(2.0f));
+      avg(x, y) = ds(x, y) / cast(Int(16), Expr(2));
       return avg;
     }
 
@@ -61,9 +65,8 @@ public:
         Func clamped = Halide::BoundaryConditions::repeat_edge(input);
 
         Func hw_input, input_copy;
-        input_copy(x, y) = cast<uint16_t>(clamped(x, y));
-        //hw_input(x, y) = cast<float>(input_copy(x, y));
-        hw_input(x, y) = cast(Float(16), input_copy(x, y));
+        input_copy(x, y) = cast<InPixelType>(clamped(x, y));
+        hw_input(x, y) = cast(Int(16), input_copy(x, y));
 
         Func gPyramid[pyramid_levels];
         gPyramid[0](x, y) =
@@ -77,9 +80,7 @@ public:
 
         Func hw_output;
         hw_output(x, y) =
-          //cast<uint16_t>( hw_input(x, y) );
-          //cast<uint16_t>( gPyramid[0](x, y) );
-          cast<uint16_t>( gPyramid[pyramid_levels - 1](x, y) );
+          cast<InPixelType>( gPyramid[pyramid_levels - 1](x, y) );
         output(x, y) = hw_output(x, y);
 
         input.dim(0).set_bounds_estimate(0, 2048*2);
