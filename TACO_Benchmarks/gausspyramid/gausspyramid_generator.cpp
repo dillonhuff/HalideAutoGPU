@@ -39,9 +39,18 @@ public:
     }
 
     Func downsample_fp(Func f) {
+      //Func ds;
+      //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
+      //return ds;
+      
+      RDom reduce(-1, 1, -1, 1);
+
       Func ds;
-      ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
-      return ds;
+      ds(x, y) = cast(Float(32), (0.0f));
+      ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
+      Func avg;
+      avg(x, y) = ds(x, y) / Expr(2.0f);
+      return avg;
     }
 
     void generate() {
@@ -53,7 +62,7 @@ public:
 
         Func hw_input, input_copy;
         input_copy(x, y) = cast<uint16_t>(clamped(x, y));
-        hw_input(x, y) = cast<uint16_t>(input_copy(x, y));
+        hw_input(x, y) = cast<float>(input_copy(x, y));
 
         Func gPyramid[pyramid_levels];
         gPyramid[0](x, y) =
@@ -61,8 +70,8 @@ public:
 
         for (int j = 1; j < pyramid_levels; j++) {
           gPyramid[j](x, y) =
-            //downsample_fp(gPyramid[j - 1])(x, y);
-            downsample(gPyramid[j - 1])(x, y);
+            downsample_fp(gPyramid[j - 1])(x, y);
+            //downsample(gPyramid[j - 1])(x, y);
         }
 
         Func hw_output;
