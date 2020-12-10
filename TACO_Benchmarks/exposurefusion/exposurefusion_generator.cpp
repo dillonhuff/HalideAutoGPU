@@ -17,8 +17,6 @@ using namespace Halide;
 //int imgSize = 1024 / 2 - 1;
 
 const int pyramid_levels = 4;
-const int num_stages = 50;
-
 
 class GaussianBlur : public Halide::Generator<GaussianBlur> {
 public:
@@ -52,7 +50,8 @@ public:
         //f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1) +
         //f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1);
       //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) >> 1;
-      ds(x, y) = (f(2*x, 2*y) + f(2*x + 1, 2*y + 1)) >> 1;
+      //ds(x, y) = (f(2*x, 2*y) + f(2*x + 1, 2*y + 1)) / 2;
+      ds(x, y) = (f(2*x, 2*y) + f(2*x + 1, 2*y + 1)) / 2;
       return ds;
 
       //RDom reduce(-1, 1, -1, 1);
@@ -105,12 +104,22 @@ public:
         Func clamped = Halide::BoundaryConditions::repeat_edge(input);
 
         Func hw_input, input_copy;
+<<<<<<< HEAD
+=======
+        //input_copy(x, y) = cast<uint16_t>(clamped(x, y));
+>>>>>>> upstream/dhuff_experiments
         input_copy(x, y) = cast<float>(clamped(x, y));
         hw_input(x, y) = input_copy(x, y);
 
         bright(x, y) = 2.0f*hw_input(x, y);
         dark(x, y) = hw_input(x, y);
 
+<<<<<<< HEAD
+=======
+        //bright_weight(x, y) = select(bright(x, y) < 128, 1, 0);
+        //dark_weight(x, y) = select(dark(x, y) > 128, 1, 0);
+
+>>>>>>> upstream/dhuff_experiments
         bright_weight(x, y) = select(bright(x, y) < 128.0f, 1.0f, 0.0f);
         dark_weight(x, y) = select(dark(x, y) > 128.0f, 1.0f, 0.0f);
 
@@ -151,10 +160,13 @@ public:
         output.estimate(x, 0, 2048)
               .estimate(y, 0, 2048);
 
-        output.bound(x, 0, 2048);
-        output.bound(y, 0, 2048);
+        //output.bound(x, 0, 2048);
+        //output.bound(y, 0, 2048);
 
         if (auto_schedule) {
+        } else {
+          clamped.trace_loads();
+          clamped.compute_root();
         }
 
     }

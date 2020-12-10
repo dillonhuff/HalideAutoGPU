@@ -14,7 +14,15 @@ $(BIN)/$(APP_NAME).generator: $(APP_NAME)_generator.cpp ../autoscheduler/SimpleA
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -g $(filter-out %.h,$^) -o $@ $(LDFLAGS) $(HALIDE_SYSTEM_LIBS) $(USE_EXPORT_DYNAMIC)
 
+<<<<<<< HEAD
 $(BIN)/$(APP_NAME).a: $(BIN)/$(APP_NAME).generator
+=======
+$(BIN)/gausspyramid_cpu.a: $(BIN)/gausspyramid.generator
+	@mkdir -p $(@D)
+	$^ -g gausspyramid -o $(BIN) -f gausspyramid_cpu target=host auto_schedule=false
+
+$(BIN)/gausspyramid.a: $(BIN)/gausspyramid.generator
+>>>>>>> upstream/dhuff_experiments
 	@mkdir -p $(@D)
 	$^ -g $(APP_NAME) -o $(BIN) -f $(APP_NAME) target=$(HL_TARGET)-no_runtime auto_schedule=false
 
@@ -43,7 +51,12 @@ $(BIN)/$(APP_NAME)_auto_schedule_no_fus.a: $(BIN)/$(APP_NAME).generator $(AUTOSC
 
 
 
+<<<<<<< HEAD
 $(BIN)/process: process.cpp $(BIN)/$(APP_NAME).a $(BIN)/$(APP_NAME)_auto_schedule.a $(BIN)/$(APP_NAME)_simple_auto_schedule.a $(BIN)/$(APP_NAME)_auto_schedule_store.a $(BIN)/$(APP_NAME)_auto_schedule_no_fus.a
+=======
+#$(BIN)/process: process.cpp $(BIN)/gausspyramid.a $(BIN)/gausspyramid_auto_schedule.a $(BIN)/gausspyramid_simple_auto_schedule.a $(BIN)/gausspyramid_auto_schedule_store.a $(BIN)/gausspyramid_auto_schedule_no_fus.a
+$(BIN)/process: process.cpp $(BIN)/gausspyramid.a $(BIN)/gausspyramid_auto_schedule.a $(BIN)/gausspyramid_simple_auto_schedule.a $(BIN)/gausspyramid_auto_schedule_no_fus.a $(BIN)/gausspyramid_cpu.a
+>>>>>>> upstream/dhuff_experiments
 	@mkdir -p $(@D)
 	$(CXX) $(CXXFLAGS) -I$(BIN) -Wall -O3 $^ -o $@ $(LDFLAGS) $(IMAGE_IO_FLAGS) $(CUDA_LDFLAGS) $(OPENCL_LDFLAGS) $(OPENGL_LDFLAGS)
 

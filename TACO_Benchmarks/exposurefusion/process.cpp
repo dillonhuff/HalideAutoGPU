@@ -6,8 +6,9 @@
 // Yet another comment hello
 #include "exposurefusion.h"
 #ifndef NO_AUTO_SCHEDULE
-#include "exposurefusion_auto_schedule_store.h"
+//#include "exposurefusion_auto_schedule_store.h"
 #include "exposurefusion_auto_schedule.h"
+#include "exposurefusion_cpu.h"
 #include "exposurefusion_simple_auto_schedule.h"
 #include "exposurefusion_auto_schedule_no_fus.h"
 #endif
@@ -33,8 +34,13 @@ int main(int argc, char **argv) {
     // Input may be a PNG8
     Buffer<uint16_t> input = load_and_convert_image(argv[1]);
 
-    Buffer<uint16_t> output(2048, 2048);
-    const int num_runs = 100000;
+    int cols = 1920;
+    int rows = 1080;
+    Buffer<uint16_t> output(cols, rows);
+    exposurefusion_cpu(input, output);
+    assert(false);
+
+    const int num_runs = 10000;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
     for (int r = 0; r < num_runs; r++) {
@@ -60,7 +66,7 @@ int main(int argc, char **argv) {
     multi_way_bench({
         //{"Manual", [&]() { exposurefusion(input, output); output.device_sync(); }},
     #ifndef NO_AUTO_SCHEDULE
-        {"Nested auto-scheduled", [&]() { exposurefusion_auto_schedule_store(input, output); output.device_sync(); }},
+        //{"Nested auto-scheduled", [&]() { exposurefusion_auto_schedule_store(input, output); output.device_sync(); }},
        {"Auto-scheduled", [&]() { exposurefusion_auto_schedule(input, output); output.device_sync(); }},
           {"No-fusion auto-scheduled", [&]() { exposurefusion_auto_schedule_no_fus(input, output); output.device_sync(); }},
         //{"Simple auto-scheduled", [&]() { exposurefusion_simple_auto_schedule(input, output); output.device_sync(); }}

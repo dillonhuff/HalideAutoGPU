@@ -18,6 +18,7 @@ print('power logs =', len(power_log))
 
 power_readings = []
 for l in power_log:
+    # print('Line:', l)
     fields = l.split(', ')
     time = int(fields[2])
     power = int(fields[3])
@@ -33,7 +34,9 @@ print('Duration      =', duration_us, ' usec')
 duration = duration_us / 1000000.0
 print('Duration      =', duration, '  sec')
 
-pixels_in = 2048*2048*runs
+pixels_per_image = 2048*2048
+print('Pixels per img=', pixels_per_image)
+pixels_in = pixels_per_image*runs
 throughput = pixels_in / float(duration)
 
 power_perf = throughput / float(average_power)

@@ -1,3 +1,4 @@
+#include <fstream>
 #include <cstdio>
 #include <chrono>
 #include <fstream>
@@ -8,6 +9,7 @@
 #ifndef NO_AUTO_SCHEDULE
 #include "gausspyramid_auto_schedule_store.h"
 #include "gausspyramid_auto_schedule.h"
+#include "gausspyramid_cpu.h"
 #include "gausspyramid_simple_auto_schedule.h"
 #include "gausspyramid_auto_schedule_no_fus.h"
 #endif
@@ -16,13 +18,18 @@
 #include "HalideBuffer.h"
 #include "halide_image_io.h"
 
+#include <cmath>
+
 using namespace std;
 using namespace Halide::Runtime;
 using namespace Halide::Tools;
 using namespace std::chrono;
+<<<<<<< HEAD
 
 //typedef uint32_t InPixelType;
 typedef uint16_t InPixelType;
+=======
+>>>>>>> upstream/dhuff_experiments
 
 int main(int argc, char **argv) {
     if (argc < 7) {
@@ -36,11 +43,24 @@ int main(int argc, char **argv) {
     // Input may be a PNG8
     Buffer<InPixelType> input = load_and_convert_image(argv[1]);
 
+<<<<<<< HEAD
     Buffer<InPixelType> output(256, 256);
     const int num_runs = 1000000;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
     for (int r = 0; r < num_runs; r++) {
+=======
+    int cols = 1920;
+    int rows = 1080;
+    Buffer<uint16_t> output(cols / pow(2, 3), rows / pow(2, 3));
+    gausspyramid_cpu(input, output);
+    assert(false);
+
+    const long int num_runs = 100000;
+    __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
+
+    for (long int r = 0; r < num_runs; r++) {
+>>>>>>> upstream/dhuff_experiments
       //cout << "r = " << r << endl;
       gausspyramid_auto_schedule(input, output); 
       output.device_sync(); 
@@ -52,11 +72,18 @@ int main(int argc, char **argv) {
     times << end_us << endl;
     times << num_runs << endl;
     times.close();
+<<<<<<< HEAD
 
     cout << "microseconds since epoch: " << end_us << endl;
     auto diff = end_us - start_us;
     cout << "diff = " << diff << endl;
     cout << "per run = " << diff / num_runs << endl;
+=======
+    //for (int r = 0; r < 1; r++) {
+      //gausspyramid(input, output); 
+      //output.device_sync(); 
+    //}
+>>>>>>> upstream/dhuff_experiments
     cout << "Done with auto schedule" << endl;
 
 

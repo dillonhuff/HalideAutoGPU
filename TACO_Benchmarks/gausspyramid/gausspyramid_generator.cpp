@@ -33,10 +33,11 @@ public:
       RDom reduce(-1, 1, -1, 1);
 
       Func ds;
-      ds(x, y) = 0;
+      ds(x, y) = 0.0f;
       ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
       Func avg;
-      avg(x, y) = ds(x, y) / Expr(9);
+      //avg(x, y) = ds(x, y) / Expr(9);
+      avg(x, y) = ds(x, y) / Expr(9.0f);
       return avg;
     }
 
@@ -65,8 +66,13 @@ public:
         Func clamped = Halide::BoundaryConditions::repeat_edge(input);
 
         Func hw_input, input_copy;
+<<<<<<< HEAD
         input_copy(x, y) = cast<InPixelType>(clamped(x, y));
         hw_input(x, y) = cast(Float(16), input_copy(x, y));
+=======
+        input_copy(x, y) = cast<float>(clamped(x, y));
+        hw_input(x, y) = input_copy(x, y);
+>>>>>>> upstream/dhuff_experiments
 
         Func gPyramid[pyramid_levels];
         gPyramid[0](x, y) =
@@ -89,10 +95,18 @@ public:
         output.estimate(x, 0, 2048)
               .estimate(y, 0, 2048);
 
+<<<<<<< HEAD
         output.bound(x, 0, 256);
         output.bound(y, 0, 256);
+=======
+        //output.bound(x, 0, 32);
+        //output.bound(y, 0, 32);
+>>>>>>> upstream/dhuff_experiments
 
         if (auto_schedule) {
+        } else {
+          clamped.trace_loads();
+          clamped.compute_root();
         }
 
     }
