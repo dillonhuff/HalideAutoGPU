@@ -34,6 +34,7 @@ public:
       ds(x, y) = 0.0f;
       ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
       Func avg;
+      //avg(x, y) = ds(x, y) / Expr(9);
       avg(x, y) = ds(x, y) / Expr(9.0f);
       return avg;
     }
