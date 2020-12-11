@@ -18,13 +18,14 @@ print('power logs =', len(power_log))
 
 power_readings = []
 for l in power_log:
-    # print('Line:', l)
+    print('Line:', l)
     fields = l.split(', ')
-    time = int(fields[2])
-    power = int(fields[3])
-    if (start < time and time < end):
-        print('power:', power)
-        power_readings.append(power)
+    if len(fields) > 3:
+        time = int(fields[2])
+        power = int(fields[3])
+        if (start < time and time < end):
+            print('power:', power)
+            power_readings.append(power)
 
 average_power = statistics.mean(power_readings)
 print('Average power =', average_power, 'W')

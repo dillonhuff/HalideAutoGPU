@@ -38,10 +38,12 @@ int main(int argc, char **argv) {
     int cols = 1920;
     int rows = 1080;
     Buffer<uint16_t> output(cols / pow(2, 3), rows / pow(2, 3));
-    gausspyramid_cpu(input, output);
-    assert(false);
 
-    const long int num_runs = 100000;
+#ifdef COUNT_PIXELS
+    gausspyramid_cpu(input, output);
+#else
+
+    const long int num_runs = 1000000;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
     for (long int r = 0; r < num_runs; r++) {
@@ -64,17 +66,19 @@ int main(int argc, char **argv) {
     //return 0;
 
    multi_way_bench({
-        {"Manual", [&]() { gausspyramid(input, output); output.device_sync(); }},
+        //{"Manual", [&]() { gausspyramid(input, output); output.device_sync(); }},
     #ifndef NO_AUTO_SCHEDULE
         //{"Nested auto-scheduled", [&]() { gausspyramid_auto_schedule_store(input, output); output.device_sync(); }},
        {"Auto-scheduled", [&]() { gausspyramid_auto_schedule(input, output); output.device_sync(); }},
-          {"No-fusion auto-scheduled", [&]() { gausspyramid_auto_schedule_no_fus(input, output); output.device_sync(); }},
-        {"Simple auto-scheduled", [&]() { gausspyramid_simple_auto_schedule(input, output); output.device_sync(); }}
+       //{"No-fusion auto-scheduled", [&]() { gausspyramid_auto_schedule_no_fus(input, output); output.device_sync(); }},
+        //{"Simple auto-scheduled", [&]() { gausspyramid_simple_auto_schedule(input, output); output.device_sync(); }}
     #endif
         }
     );
 
    std::cout << "Done, transferring image" << endl;
+
+#endif // COUNT_PIXELS
 
     convert_and_save_image(output, argv[6]);
 
