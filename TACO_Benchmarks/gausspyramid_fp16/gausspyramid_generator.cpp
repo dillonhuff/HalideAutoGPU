@@ -24,10 +24,10 @@ public:
       RDom reduce(-1, 2, -1, 2);
 
       Func ds;
-      ds(x, y) = cast(Float(16), (0));
+      ds(x, y) = cast(Float(32), (0));
       ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
       Func avg;
-      avg(x, y) = ds(x, y) / cast(Float(16), Expr(2));
+      avg(x, y) = ds(x, y) / cast(Float(32), Expr(2));
       return avg;
     }
 
@@ -39,7 +39,7 @@ public:
 
         Func hw_input, input_copy;
         input_copy(x, y) = cast<InPixelType>(clamped(x, y));
-        hw_input(x, y) = cast(Float(16), input_copy(x, y));
+        hw_input(x, y) = cast(Float(32), input_copy(x, y));
 
         Func gPyramid[pyramid_levels];
         gPyramid[0](x, y) =
@@ -67,11 +67,9 @@ public:
         if (auto_schedule) {
         } else {
           for (int i = 0; i < (int) pyramid_levels; i++) {
-            //gPyramid[i].gpu_single_thread().compute_root();
-            gPyramid[i].compute_root();
+            gPyramid[i].gpu_single_thread().compute_root();
+            //gPyramid[i].compute_root();
           }
-          //hw_output.gpu_single_thread();
-          //hw_input.gpu_single_thread();
         }
 
     }
