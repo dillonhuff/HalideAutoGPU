@@ -65,6 +65,13 @@ public:
         output.bound(y, 0, 256);
 
         if (auto_schedule) {
+        } else {
+          for (int i = 0; i < (int) pyramid_levels; i++) {
+            gPyramid[i].gpu_single_thread().compute_root();
+            //gPyramid[i].compute_root();
+          }
+          //hw_output.gpu_single_thread();
+          //hw_input.gpu_single_thread();
         }
 
     }
