@@ -22,8 +22,8 @@ const int num_stages = 50;
 
 class GaussianBlur : public Halide::Generator<GaussianBlur> {
 public:
-    Input<Buffer<uint16_t>>  input{"input", 2};
-    Output<Buffer<uint16_t>> output{"output", 2};
+    Input<Buffer<float>>  input{"input", 2};
+    Output<Buffer<float>> output{"output", 2};
 
     Var x, y, c;
 
@@ -36,6 +36,12 @@ public:
     Func upsample(Func f) {
       Func ds;
       ds(x, y) = f(x / 2, y / 2);
+      return ds;
+    }
+
+    Func downsample_fp(Func f) {
+      Func ds;
+      ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
       return ds;
     }
 
@@ -158,12 +164,12 @@ public:
         Func clamped = Halide::BoundaryConditions::repeat_edge(input);
 
         Func hw_input, input_copy;
-        input_copy(x, y) = cast<uint16_t>(clamped(x, y));
-        hw_input(x, y) = input_copy(x, y);
+        input_copy(x, y) = cast<float>(clamped(x, y));
+        hw_input(x, y) = cast<float>(input_copy(x, y));
 
         Func hw_output;
         hw_output(x, y) =
-          cast<uint16_t>( downsample(hw_input)(x, y) );
+          cast<float>( downsample_fp(hw_input)(x, y) );
         output(x, y) = hw_output(x, y);
 
         input.dim(0).set_bounds_estimate(0, 2048*2);

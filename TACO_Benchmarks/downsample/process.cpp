@@ -31,9 +31,9 @@ int main(int argc, char **argv) {
     halide_reuse_device_allocations(nullptr, true);
 #endif
     // Input may be a PNG8
-    Buffer<uint16_t> input = load_and_convert_image(argv[1]);
+    Buffer<float> input = load_and_convert_image(argv[1]);
 
-    Buffer<uint16_t> output(1024, 1024);
+    Buffer<float> output(1024, 1024);
     const int num_runs = 1000000;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 

@@ -9,14 +9,9 @@ namespace {
 
 using namespace Halide;
 
-// Size of blur for gradients.
-//const int blockSize = 3;
-//int imgSize = 1024 / 2 - 1;
-
 const int pyramid_levels = 4;
 
 typedef uint16_t InPixelType;
-//typedef uint32_t InPixelType;
 
 class GaussianBlur : public Halide::Generator<GaussianBlur> {
 public:
@@ -25,29 +20,7 @@ public:
 
     Var x, y, c;
 
-    Func downsample(Func f) {
-      //Func ds;
-      //ds(x, y) = (3*f(2*x + 1, 2*y) + f(2*x, 2*y));
-      //return ds;
-
-      RDom reduce(-1, 1, -1, 1);
-
-      Func ds;
-      ds(x, y) = 0.0f;
-      ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
-      Func avg;
-      //avg(x, y) = ds(x, y) / Expr(9);
-      avg(x, y) = ds(x, y) / Expr(9.0f);
-      return avg;
-    }
-
     Func downsample_fp(Func f) {
-      //Func ds;
-      //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
-      //return ds;
-      
-      //RDom reduce(-1, 1, -1, 1);
-      //RDom reduce(-10, 10, -10, 10);
       RDom reduce(-1, 2, -1, 2);
 
       Func ds;
@@ -59,20 +32,14 @@ public:
     }
 
     void generate() {
-        /* THE ALGORITHM */
 
         Var xo("xo"), yo("yo"), xi("xi"), yi("yi");
 
         Func clamped = Halide::BoundaryConditions::repeat_edge(input);
 
         Func hw_input, input_copy;
-<<<<<<< HEAD
         input_copy(x, y) = cast<InPixelType>(clamped(x, y));
         hw_input(x, y) = cast(Float(16), input_copy(x, y));
-=======
-        input_copy(x, y) = cast<float>(clamped(x, y));
-        hw_input(x, y) = input_copy(x, y);
->>>>>>> upstream/dhuff_experiments
 
         Func gPyramid[pyramid_levels];
         gPyramid[0](x, y) =
@@ -81,7 +48,6 @@ public:
         for (int j = 1; j < pyramid_levels; j++) {
           gPyramid[j](x, y) =
             downsample_fp(gPyramid[j - 1])(x, y);
-            //downsample(gPyramid[j - 1])(x, y);
         }
 
         Func hw_output;
@@ -95,18 +61,15 @@ public:
         output.estimate(x, 0, 2048)
               .estimate(y, 0, 2048);
 
-<<<<<<< HEAD
         output.bound(x, 0, 256);
         output.bound(y, 0, 256);
-=======
-        //output.bound(x, 0, 32);
-        //output.bound(y, 0, 32);
->>>>>>> upstream/dhuff_experiments
 
         if (auto_schedule) {
         } else {
-          clamped.trace_loads();
-          clamped.compute_root();
+          for (int i = 0; i < (int) pyramid_levels; i++) {
+            gPyramid[i].gpu_single_thread().compute_root();
+            //gPyramid[i].compute_root();
+          }
         }
 
     }
