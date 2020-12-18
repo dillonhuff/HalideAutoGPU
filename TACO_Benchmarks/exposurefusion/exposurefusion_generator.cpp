@@ -26,18 +26,18 @@ public:
     Var x, y, c;
 
     Func downsample_fp(Func f) {
-      //RDom reduce(-1, 2, -1, 2);
-
-      //Func ds;
-      //ds(x, y) = cast(Float(32), (0));
-      //ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
-      //Func avg;
-      //avg(x, y) = ds(x, y) / cast(Float(32), Expr(2));
-      //return avg;
+      RDom reduce(-1, 2, -1, 2);
 
       Func ds;
-      ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
-      return ds;
+      ds(x, y) = cast(Float(32), (0));
+      ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
+      Func avg;
+      avg(x, y) = ds(x, y) / cast(Float(32), Expr(2));
+      return avg;
+
+      //Func ds;
+      //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
+      //return ds;
     }
 
     Func random_pointwise_stage(Func f) {
