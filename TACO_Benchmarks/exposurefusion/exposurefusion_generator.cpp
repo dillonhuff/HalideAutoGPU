@@ -26,9 +26,18 @@ public:
     Var x, y, c;
 
     Func downsample_fp(Func f) {
+      RDom reduce(-1, 2, -1, 2);
+
       Func ds;
-      ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
-      return ds;
+      ds(x, y) = cast(Float(32), (0));
+      ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
+      Func avg;
+      avg(x, y) = ds(x, y) / cast(Float(32), Expr(2));
+      return avg;
+
+      //Func ds;
+      //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
+      //return ds;
     }
 
     Func random_pointwise_stage(Func f) {
@@ -44,24 +53,24 @@ public:
     }
 
     Func downsample(Func f) {
-      Func ds;
+      //Func ds;
       //ds(x, y) =
         //f(2*x - 1, 2*y) + f(2*x, 2*y) + f(2*x + 1, 2*y) +
         //f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1) +
         //f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1);
       //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) >> 1;
       //ds(x, y) = (f(2*x, 2*y) + f(2*x + 1, 2*y + 1)) / 2;
-      ds(x, y) = (f(2*x, 2*y) + f(2*x + 1, 2*y + 1)) / 2;
-      return ds;
+      //ds(x, y) = (f(2*x, 2*y) + f(2*x + 1, 2*y + 1)) / 2;
+      //return ds;
 
-      //RDom reduce(-1, 1, -1, 1);
+      RDom reduce(-1, 2, -1, 2);
 
-      //Func ds;
-      //ds(x, y) = 0;
-      //ds(x, y) += f(x + reduce.x, y + reduce.y);
-      //Func avg;
-      //avg(x, y) = ds(x, y) / Expr(9);
-      //return avg;
+      Func ds;
+      ds(x, y) = 0;
+      ds(x, y) += f(x + reduce.x, y + reduce.y);
+      Func avg;
+      avg(x, y) = ds(x, y) / Expr(9);
+      return avg;
     }
 
     vector<Func> laplace_pyramid(Func bright) {
@@ -86,7 +95,17 @@ public:
       gPyramid[0](x, y) =
         l0(x, y);
 
+      Expr w = input.dim(0).extent(), h = input.dim(1).extent();
       for (int j = 1; j < pyramid_levels; j++) {
+        //Func tmp_ds;
+        //tmp_ds(x, y) = 
+          //downsample_fp(gPyramid[j - 1])(x, y);
+
+          //w /= 2;
+          //h /= 2;
+        //gPyramid[j] =
+          //BoundaryConditions::repeat_edge(tmp_ds, {{0, w}, {0, h}});
+
         gPyramid[j](x, y) =
           downsample_fp(gPyramid[j - 1])(x, y);
       }
@@ -104,22 +123,12 @@ public:
         Func clamped = Halide::BoundaryConditions::repeat_edge(input);
 
         Func hw_input, input_copy;
-<<<<<<< HEAD
-=======
-        //input_copy(x, y) = cast<uint16_t>(clamped(x, y));
->>>>>>> upstream/dhuff_experiments
         input_copy(x, y) = cast<float>(clamped(x, y));
         hw_input(x, y) = input_copy(x, y);
 
         bright(x, y) = 2.0f*hw_input(x, y);
         dark(x, y) = hw_input(x, y);
 
-<<<<<<< HEAD
-=======
-        //bright_weight(x, y) = select(bright(x, y) < 128, 1, 0);
-        //dark_weight(x, y) = select(dark(x, y) > 128, 1, 0);
-
->>>>>>> upstream/dhuff_experiments
         bright_weight(x, y) = select(bright(x, y) < 128.0f, 1.0f, 0.0f);
         dark_weight(x, y) = select(dark(x, y) > 128.0f, 1.0f, 0.0f);
 
@@ -165,8 +174,8 @@ public:
 
         if (auto_schedule) {
         } else {
-          clamped.trace_loads();
-          clamped.compute_root();
+          //clamped.trace_loads();
+          //clamped.compute_root();
         }
 
     }

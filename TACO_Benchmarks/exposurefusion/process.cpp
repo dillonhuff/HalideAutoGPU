@@ -34,13 +34,16 @@ int main(int argc, char **argv) {
     // Input may be a PNG8
     Buffer<uint16_t> input = load_and_convert_image(argv[1]);
 
-    int cols = 1920;
-    int rows = 1080;
+    int cols = 2048;
+    int rows = 2048;
     Buffer<uint16_t> output(cols, rows);
-    exposurefusion_cpu(input, output);
-    assert(false);
 
-    const int num_runs = 10000;
+    cout << "Starting CPU..."  << endl;
+    //exposurefusion_cpu(input, output);
+    //assert(false);
+
+    cout << "Starting auto-schedule runs..."  << endl;
+    const int num_runs = 100000;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
     for (int r = 0; r < num_runs; r++) {
