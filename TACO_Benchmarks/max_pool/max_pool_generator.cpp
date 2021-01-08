@@ -69,7 +69,7 @@ public:
 
         if (auto_schedule) {
         } else {
-          clamped.trace_loads();
+          //clamped.trace_loads();
           clamped.compute_root();
         }
 

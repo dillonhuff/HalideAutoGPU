@@ -35,7 +35,15 @@ print('Duration      =', duration_us, ' usec')
 duration = duration_us / 1000000.0
 print('Duration      =', duration, '  sec')
 
-pixels_per_image = 2048*2048
+input_stats = open('input_info.txt', 'r').readlines()
+pixels_per_image = 1
+for l in input_stats:
+    vs = l.split(',')
+    print('INPUT INFO LINE:', l)
+    pixels_per_image *= float(vs[1])
+
+
+# pixels_per_image = 2048*2048
 print('Pixels per img=', pixels_per_image)
 pixels_in = pixels_per_image*runs
 throughput = pixels_in / float(duration)
