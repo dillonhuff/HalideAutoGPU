@@ -22,6 +22,8 @@ using namespace Halide::Runtime;
 using namespace Halide::Tools;
 using namespace std::chrono;
 
+typedef float PixelType;
+
 int main(int argc, char **argv) {
     if (argc < 7) {
         printf("Usage: ./process input.png levels alpha beta timing_iterations output.png\n"
@@ -32,11 +34,11 @@ int main(int argc, char **argv) {
     halide_reuse_device_allocations(nullptr, true);
 #endif
     // Input may be a PNG8
-    Buffer<uint16_t> input = load_and_convert_image(argv[1]);
+    Buffer<PixelType> input = load_and_convert_image(argv[1]);
 
     int cols = 2048;
     int rows = 2048;
-    Buffer<uint16_t> output(cols, rows);
+    Buffer<PixelType> output(cols, rows);
 
     cout << "Starting CPU..."  << endl;
     //exposurefusion_cpu(input, output);
@@ -58,6 +60,12 @@ int main(int argc, char **argv) {
     times << end_us << endl;
     times << num_runs << endl;
     times.close();
+
+    ofstream input_info("input_info.txt");
+    input_info << "x," << input.width() << endl;
+    input_info << "y," << input.height() << endl;
+    input_info << "b," << input.channels() << endl;
+    input_info.close();
 
     cout << "microseconds since epoch: " << end_us << endl;
     auto diff = end_us - start_us;
