@@ -28,7 +28,7 @@ public:
       ds(x, y) = cast(Float(32), (0));
       ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
       Func avg;
-      avg(x, y) = ds(x, y) / cast(Float(32), Expr(2));
+      avg(x, y) = ds(x, y) / cast(Float(32), Expr(9));
       return avg;
     }
 
