@@ -20,30 +20,16 @@ const int pyramid_levels = 4;
 
 class GaussianBlur : public Halide::Generator<GaussianBlur> {
 public:
-    Input<Buffer<float>>  input{"input", 2};
-    Output<Buffer<float>> output{"output", 2};
+    Input<Buffer<uint16_t>>  input{"input", 2};
+    Output<Buffer<uint16_t>> output{"output", 2};
 
     Var x, y, c;
 
     Func downsample_fp(Func f) {
-      //Func downx, downy;
-      //downx(x, y, _) = (f(2*x-1, y, _) + 3.0f * (f(2*x, y, _) + f(2*x+1, y, _)) + f(2*x+2, y, _)) / 8.0f;
-      //downy(x, y, _) = (downx(x, 2*y-1, _) + 3.0f * (downx(x, 2*y, _) + downx(x, 2*y+1, _)) + downx(x, 2*y+2, _)) / 8.0f;
-
-      //return downy;
-      //RDom reduce(-1, 2, -1, 2);
-      ////RDom reduce(-1, 1, -1, 1);
-
-      //Func ds;
-      //ds(x, y) = cast(Float(32), (0));
-      //ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
-      //Func avg;
-      //avg(x, y) = ds(x, y) / cast(Float(32), Expr(2));
-      //return avg;
 
       Func ds;
       ////ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y) + f(2*x, 2*y + 1)) / 3.0f;
-      ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
+      ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 9;
       return ds;
     }
 
@@ -55,7 +41,7 @@ public:
 
     Func upsample(Func f) {
       Func ds;
-      ds(x, y) = cast<float>(f(x / 2, y / 2));
+      ds(x, y) = cast<uint16_t>(f(x / 2, y / 2));
       return ds;
     }
 
@@ -106,14 +92,14 @@ public:
         Func clamped = Halide::BoundaryConditions::repeat_edge(input);
 
         Func hw_input, input_copy;
-        input_copy(x, y) = cast<float>(clamped(x, y));
+        input_copy(x, y) = cast<uint16_t>(clamped(x, y));
         hw_input(x, y) = input_copy(x, y);
 
-        bright(x, y) = 2.0f*hw_input(x, y);
+        bright(x, y) = 2*hw_input(x, y);
         dark(x, y) = hw_input(x, y);
 
-        bright_weight(x, y) = select(bright(x, y) < 128.0f, 1.0f, 0.0f);
-        dark_weight(x, y) = select(dark(x, y) > 128.0f, 1.0f, 0.0f);
+        bright_weight(x, y) = select(bright(x, y) < 128, 1, 0);
+        dark_weight(x, y) = select(dark(x, y) > 128, 1, 0);
 
         //auto bright_pyramid = gauss_pyramid(bright);
         //auto dark_pyramid = gauss_pyramid(dark);
@@ -121,8 +107,8 @@ public:
         auto bright_pyramid = laplace_pyramid(bright);
         auto dark_pyramid = laplace_pyramid(dark);
 
-        auto bright_weight_pyramid = gauss_pyramid(bright_weight);
-        auto dark_weight_pyramid = gauss_pyramid(dark_weight);
+        auto bright_weight_pyramid = gauss_pyramid(bright);
+        auto dark_weight_pyramid = gauss_pyramid(dark);
 
         Func blend[pyramid_levels];
         for (int j = 0; j < pyramid_levels; j++) {
@@ -139,7 +125,7 @@ public:
 
         Func hw_output;
         hw_output(x, y) =
-          cast<float>( collapsed[0](x, y) );
+          cast<uint16_t>( collapsed[0](x, y) );
         output(x, y) = hw_output(x, y);
 
         input.dim(0).set_bounds_estimate(0, 2048*2);

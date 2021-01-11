@@ -22,7 +22,7 @@ using namespace Halide::Runtime;
 using namespace Halide::Tools;
 using namespace std::chrono;
 
-typedef float PixelType;
+typedef uint16_t PixelType;
 
 int main(int argc, char **argv) {
     if (argc < 7) {
