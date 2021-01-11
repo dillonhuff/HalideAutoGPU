@@ -25,17 +25,9 @@ public:
 
       Func ds;
       ds(x, y) = cast(Float(32), (0));
-<<<<<<< HEAD
-      //ds(x, y) = cast(Int(16), (0));
       ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
       Func avg;
       avg(x, y) = ds(x, y) / cast(Float(32), Expr(2));
-      //avg(x, y) = ds(x, y) / cast(Int(16), Expr(2));
-=======
-      ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
-      Func avg;
-      avg(x, y) = ds(x, y) / cast(Float(32), Expr(2));
->>>>>>> c9b0a4cc56594c0ae122e134cb2ab2ad49d25bd9
       return avg;
     }
 
@@ -48,10 +40,6 @@ public:
         Func hw_input, input_copy;
         input_copy(x, y) = cast<InPixelType>(clamped(x, y));
         hw_input(x, y) = cast(Float(32), input_copy(x, y));
-<<<<<<< HEAD
-        //hw_input(x, y) = cast(Int(16), input_copy(x, y));
-=======
->>>>>>> c9b0a4cc56594c0ae122e134cb2ab2ad49d25bd9
 
         Func gPyramid[pyramid_levels];
         gPyramid[0](x, y) =
