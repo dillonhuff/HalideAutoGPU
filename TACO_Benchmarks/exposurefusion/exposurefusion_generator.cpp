@@ -26,7 +26,8 @@ public:
     Var x, y, c;
 
     Func downsample_fp(Func f) {
-      RDom reduce(-1, 2, -1, 2);
+      //RDom reduce(-1, 2, -1, 2);
+      RDom reduce(-1, 1, -1, 1);
 
       Func ds;
       ds(x, y) = cast(Float(32), (0));
@@ -91,27 +92,47 @@ public:
 
     vector<Func> gauss_pyramid(Func l0) {
       vector<Func> gPyramid;
+      vector<Func> gPyramid_clamped;
       gPyramid.resize(pyramid_levels);
+      gPyramid_clamped.resize(pyramid_levels);
       gPyramid[0](x, y) =
         l0(x, y);
-
+      gPyramid_clamped[0](x, y) =
+        l0(x, y);
       Expr w = input.dim(0).extent(), h = input.dim(1).extent();
       for (int j = 1; j < pyramid_levels; j++) {
-        Func tmp_ds;
-        tmp_ds(x, y) = 
+        gPyramid[j](x, y) =
           downsample_fp(gPyramid[j - 1])(x, y);
-
         w /= 2;
         h /= 2;
-        gPyramid[j] =
-          BoundaryConditions::repeat_edge(tmp_ds, {{0, w}, {0, h}});
-
-        //gPyramid[j](x, y) =
-          //downsample_fp(gPyramid[j - 1])(x, y);
+        gPyramid_clamped[j] = BoundaryConditions::repeat_edge(gPyramid[j], {{0, w}, {0, h}});
       }
 
-      return gPyramid;
+      return gPyramid_clamped;
     }
+    //vector<Func> gauss_pyramid(Func l0) {
+      //vector<Func> gPyramid;
+      //gPyramid.resize(pyramid_levels);
+      //gPyramid[0](x, y) =
+        //l0(x, y);
+
+      //Expr w = input.dim(0).extent(), h = input.dim(1).extent();
+      //for (int j = 1; j < pyramid_levels; j++) {
+        //Func tmp_ds;
+        //tmp_ds(x, y) = 
+          //downsample_fp(gPyramid[j - 1])(x, y);
+
+        //w /= 2;
+        //h /= 2;
+        //gPyramid[j] =
+          //BoundaryConditions::repeat_edge(tmp_ds, {{0, w}, {0, h}});
+
+        ////gPyramid[j](x, y) =
+          ////downsample_fp(gPyramid[j - 1])(x, y);
+      //}
+
+      //return gPyramid;
+    //}
 
     void generate() {
         /* THE ALGORITHM */
