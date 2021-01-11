@@ -22,7 +22,8 @@ using namespace Halide::Tools;
 using namespace std::chrono;
 
 //typedef uint32_t InPixelType;
-typedef uint16_t InPixelType;
+//typedef uint16_t InPixelType;
+typedef float InPixelType;
 
 int main(int argc, char **argv) {
     if (argc < 7) {
@@ -37,34 +38,34 @@ int main(int argc, char **argv) {
     Buffer<InPixelType> input = load_and_convert_image(argv[1]);
 
     Buffer<InPixelType> output(256, 256);
-    //const int num_runs = 1000000;
-    //__int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
+    const int num_runs = 10000;
+    __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
-    //for (int r = 0; r < num_runs; r++) {
-      ////cout << "r = " << r << endl;
-      //gausspyramid_auto_schedule(input, output); 
-      //output.device_sync(); 
-    //}
-    //__int64_t end_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
+    for (int r = 0; r < num_runs; r++) {
+      //cout << "r = " << r << endl;
+      gausspyramid_auto_schedule(input, output); 
+      output.device_sync(); 
+    }
+    __int64_t end_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
-    //ofstream times("times.csv");
-    //times << start_us << endl;
-    //times << end_us << endl;
-    //times << num_runs << endl;
-    //times.close();
+    ofstream times("times.csv");
+    times << start_us << endl;
+    times << end_us << endl;
+    times << num_runs << endl;
+    times.close();
 
-    //cout << "microseconds since epoch: " << end_us << endl;
-    //auto diff = end_us - start_us;
-    //cout << "diff = " << diff << endl;
-    //cout << "per run = " << diff / num_runs << endl;
-    //cout << "Done with auto schedule" << endl;
+    cout << "microseconds since epoch: " << end_us << endl;
+    auto diff = end_us - start_us;
+    cout << "diff = " << diff << endl;
+    cout << "per run = " << diff / num_runs << endl;
+    cout << "Done with auto schedule" << endl;
 
 
     multi_way_bench({
-        {"Manual", [&]() { gausspyramid(input, output); output.device_sync(); }}
+        //{"Manual", [&]() { gausspyramid(input, output); output.device_sync(); }}
     #ifndef NO_AUTO_SCHEDULE
         //{"Nested auto-scheduled", [&]() { gausspyramid_auto_schedule_store(input, output); output.device_sync(); }},
-       //{"Auto-scheduled", [&]() { gausspyramid_auto_schedule(input, output); output.device_sync(); }},
+       {"Auto-scheduled", [&]() { gausspyramid_auto_schedule(input, output); output.device_sync(); }},
           //{"No-fusion auto-scheduled", [&]() { gausspyramid_auto_schedule_no_fus(input, output); output.device_sync(); }},
         //{"Simple auto-scheduled", [&]() { gausspyramid_simple_auto_schedule(input, output); output.device_sync(); }}
     #endif
