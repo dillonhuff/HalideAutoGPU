@@ -20,13 +20,14 @@ const int pyramid_levels = 4;
 
 class GaussianBlur : public Halide::Generator<GaussianBlur> {
 public:
-    Input<Buffer<uint16_t>>  input{"input", 2};
-    Output<Buffer<uint16_t>> output{"output", 2};
+    Input<Buffer<float>>  input{"input", 2};
+    Output<Buffer<float>> output{"output", 2};
 
     Var x, y, c;
 
     Func downsample_fp(Func f) {
-      RDom reduce(-1, 2, -1, 2);
+      //RDom reduce(-1, 2, -1, 2);
+      RDom reduce(-1, 1, -1, 1);
 
       Func ds;
       ds(x, y) = cast(Float(32), (0));
@@ -36,7 +37,7 @@ public:
       return avg;
 
       //Func ds;
-      //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
+      //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y) + f(2*x, 2*y + 1)) / 3.0f;
       //return ds;
     }
 
@@ -52,26 +53,26 @@ public:
       return ds;
     }
 
-    Func downsample(Func f) {
+    //Func downsample(Func f) {
+      ////Func ds;
+      ////ds(x, y) =
+        ////f(2*x - 1, 2*y) + f(2*x, 2*y) + f(2*x + 1, 2*y) +
+        ////f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1) +
+        ////f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1);
+      ////ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) >> 1;
+      ////ds(x, y) = (f(2*x, 2*y) + f(2*x + 1, 2*y + 1)) / 2;
+      ////ds(x, y) = (f(2*x, 2*y) + f(2*x + 1, 2*y + 1)) / 2;
+      ////return ds;
+
+      //RDom reduce(-1, 2, -1, 2);
+
       //Func ds;
-      //ds(x, y) =
-        //f(2*x - 1, 2*y) + f(2*x, 2*y) + f(2*x + 1, 2*y) +
-        //f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1) +
-        //f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1);
-      //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) >> 1;
-      //ds(x, y) = (f(2*x, 2*y) + f(2*x + 1, 2*y + 1)) / 2;
-      //ds(x, y) = (f(2*x, 2*y) + f(2*x + 1, 2*y + 1)) / 2;
-      //return ds;
-
-      RDom reduce(-1, 2, -1, 2);
-
-      Func ds;
-      ds(x, y) = 0;
-      ds(x, y) += f(x + reduce.x, y + reduce.y);
-      Func avg;
-      avg(x, y) = ds(x, y) / Expr(9);
-      return avg;
-    }
+      //ds(x, y) = 0;
+      //ds(x, y) += f(x + reduce.x, y + reduce.y);
+      //Func avg;
+      //avg(x, y) = ds(x, y) / Expr(9);
+      //return avg;
+    //}
 
     vector<Func> laplace_pyramid(Func bright) {
       vector<Func> gPyramid = gauss_pyramid(bright);
@@ -91,27 +92,47 @@ public:
 
     vector<Func> gauss_pyramid(Func l0) {
       vector<Func> gPyramid;
+      vector<Func> gPyramid_clamped;
       gPyramid.resize(pyramid_levels);
+      gPyramid_clamped.resize(pyramid_levels);
       gPyramid[0](x, y) =
         l0(x, y);
-
+      gPyramid_clamped[0](x, y) =
+        l0(x, y);
       Expr w = input.dim(0).extent(), h = input.dim(1).extent();
       for (int j = 1; j < pyramid_levels; j++) {
+        gPyramid[j](x, y) =
+          downsample_fp(gPyramid[j - 1])(x, y);
+        w /= 2;
+        h /= 2;
+        gPyramid_clamped[j] = BoundaryConditions::repeat_edge(gPyramid[j], {{0, w}, {0, h}});
+      }
+
+      return gPyramid_clamped;
+    }
+    //vector<Func> gauss_pyramid(Func l0) {
+      //vector<Func> gPyramid;
+      //gPyramid.resize(pyramid_levels);
+      //gPyramid[0](x, y) =
+        //l0(x, y);
+
+      //Expr w = input.dim(0).extent(), h = input.dim(1).extent();
+      //for (int j = 1; j < pyramid_levels; j++) {
         //Func tmp_ds;
         //tmp_ds(x, y) = 
           //downsample_fp(gPyramid[j - 1])(x, y);
 
-          //w /= 2;
-          //h /= 2;
+        //w /= 2;
+        //h /= 2;
         //gPyramid[j] =
           //BoundaryConditions::repeat_edge(tmp_ds, {{0, w}, {0, h}});
 
-        gPyramid[j](x, y) =
-          downsample_fp(gPyramid[j - 1])(x, y);
-      }
+        ////gPyramid[j](x, y) =
+          ////downsample_fp(gPyramid[j - 1])(x, y);
+      //}
 
-      return gPyramid;
-    }
+      //return gPyramid;
+    //}
 
     void generate() {
         /* THE ALGORITHM */
@@ -156,11 +177,7 @@ public:
 
         Func hw_output;
         hw_output(x, y) =
-          //cast<uint16_t>( blend[0](x, y) );
-          cast<uint16_t>( collapsed[0](x, y) );
-          //cast<uint16_t>( hw_input(x, y) );
-          //cast<uint16_t>( gPyramid[0](x, y) );
-          //cast<uint16_t>( gPyramid[pyramid_levels - 1](x, y) );
+          cast<float>( collapsed[0](x, y) );
         output(x, y) = hw_output(x, y);
 
         input.dim(0).set_bounds_estimate(0, 2048*2);

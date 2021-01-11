@@ -1,27 +1,29 @@
-#include <fstream>
 #include <cstdio>
 #include <chrono>
+#include <fstream>
+
 // Hello this is a comment I am a comment
-// Yet another comment
-#include "max_pool.h"
+// Yet another comment hello
+#include "gausspyramid.h"
 #ifndef NO_AUTO_SCHEDULE
-//#include "max_pool_auto_schedule_store.h"
-#include "max_pool_auto_schedule.h"
-#include "max_pool_cpu.h"
-#include "max_pool_simple_auto_schedule.h"
-#include "max_pool_auto_schedule_no_fus.h"
+#include "gausspyramid_auto_schedule_store.h"
+#include "gausspyramid_auto_schedule.h"
+#include "gausspyramid_simple_auto_schedule.h"
+#include "gausspyramid_auto_schedule_no_fus.h"
 #endif
 
 #include "benchmark_util.h"
 #include "HalideBuffer.h"
 #include "halide_image_io.h"
 
-#include <cmath>
-
 using namespace std;
 using namespace Halide::Runtime;
 using namespace Halide::Tools;
 using namespace std::chrono;
+
+//typedef uint32_t InPixelType;
+//typedef uint16_t InPixelType;
+typedef float InPixelType;
 
 int main(int argc, char **argv) {
     if (argc < 7) {
@@ -33,14 +35,7 @@ int main(int argc, char **argv) {
     halide_reuse_device_allocations(nullptr, true);
 #endif
     // Input may be a PNG8
-    Buffer<uint16_t> input(128, 128, 64);
-    for (int c = 0; c < input.channels(); c++) {
-      for (int y = 0; y < input.height(); y++) {
-        for (int x = 0; x < input.width(); x++) {
-          input(x, y, c) = rand();
-        }
-      }
-    }
+    Buffer<InPixelType> input = load_and_convert_image(argv[1]);
 
     ofstream input_info("input_info.txt");
     input_info << "x," << input.width() << endl;
@@ -48,16 +43,13 @@ int main(int argc, char **argv) {
     input_info << "b," << input.channels() << endl;
     input_info.close();
 
-    Buffer<uint16_t> output(64, 64, 64);
-    max_pool_cpu(input, output);
-
-    const long int num_runs = 1000000;
-    //const long int num_runs = 1;
+    Buffer<InPixelType> output(256, 256);
+    const int num_runs = 1000000;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
-    for (long int r = 0; r < num_runs; r++) {
+    for (int r = 0; r < num_runs; r++) {
       //cout << "r = " << r << endl;
-      max_pool_auto_schedule(input, output); 
+      gausspyramid_auto_schedule(input, output); 
       output.device_sync(); 
     }
     __int64_t end_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
@@ -67,20 +59,21 @@ int main(int argc, char **argv) {
     times << end_us << endl;
     times << num_runs << endl;
     times.close();
-    //for (int r = 0; r < 1; r++) {
-      //max_pool(input, output); 
-      //output.device_sync(); 
-    //}
-    cout << "Done with auto schedule" << endl;
-    //return 0;
 
-   multi_way_bench({
-        {"Manual", [&]() { max_pool(input, output); output.device_sync(); }},
+    cout << "microseconds since epoch: " << end_us << endl;
+    auto diff = end_us - start_us;
+    cout << "diff = " << diff << endl;
+    cout << "per run = " << diff / num_runs << endl;
+    cout << "Done with auto schedule" << endl;
+
+
+    multi_way_bench({
+        {"Manual", [&]() { gausspyramid(input, output); output.device_sync(); }}
     #ifndef NO_AUTO_SCHEDULE
-        //{"Nested auto-scheduled", [&]() { max_pool_auto_schedule_store(input, output); output.device_sync(); }},
-       {"Auto-scheduled", [&]() { max_pool_auto_schedule(input, output); output.device_sync(); }},
-          {"No-fusion auto-scheduled", [&]() { max_pool_auto_schedule_no_fus(input, output); output.device_sync(); }},
-        {"Simple auto-scheduled", [&]() { max_pool_simple_auto_schedule(input, output); output.device_sync(); }}
+        //{"Nested auto-scheduled", [&]() { gausspyramid_auto_schedule_store(input, output); output.device_sync(); }},
+       //{"Auto-scheduled", [&]() { gausspyramid_auto_schedule(input, output); output.device_sync(); }},
+          //{"No-fusion auto-scheduled", [&]() { gausspyramid_auto_schedule_no_fus(input, output); output.device_sync(); }},
+        //{"Simple auto-scheduled", [&]() { gausspyramid_simple_auto_schedule(input, output); output.device_sync(); }}
     #endif
         }
     );

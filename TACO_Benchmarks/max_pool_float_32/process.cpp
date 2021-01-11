@@ -33,7 +33,7 @@ int main(int argc, char **argv) {
     halide_reuse_device_allocations(nullptr, true);
 #endif
     // Input may be a PNG8
-    Buffer<uint16_t> input(128, 128, 64);
+    Buffer<float> input(128, 128, 64);
     for (int c = 0; c < input.channels(); c++) {
       for (int y = 0; y < input.height(); y++) {
         for (int x = 0; x < input.width(); x++) {
@@ -48,7 +48,7 @@ int main(int argc, char **argv) {
     input_info << "b," << input.channels() << endl;
     input_info.close();
 
-    Buffer<uint16_t> output(64, 64, 64);
+    Buffer<float> output(64, 64, 64);
     max_pool_cpu(input, output);
 
     const long int num_runs = 1000000;
