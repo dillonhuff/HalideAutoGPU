@@ -44,11 +44,7 @@ int main(int argc, char **argv) {
     input_info.close();
 
     Buffer<InPixelType> output(256, 256);
-<<<<<<< HEAD
-    const int num_runs = 10000;
-=======
     const int num_runs = 1000000;
->>>>>>> c9b0a4cc56594c0ae122e134cb2ab2ad49d25bd9
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
     for (int r = 0; r < num_runs; r++) {
