@@ -51,9 +51,16 @@ public:
         input_copy(x, y, c) = cast<float>(clamped(x, y, c));
         hw_input(x, y, c) = input_copy(x, y, c);
 
+        //RDom dom(0, 2, 0, 2);
         Func hw_output;
         hw_output(x, y, c) =
-          cast<uint16_t>( hw_input(x * 2, y * 2, c) );
+          cast<uint16_t>(max(
+                hw_input(2*x, 2*y, c),
+                hw_input(2*x + 1, 2*y, c),
+                hw_input(2*x, 2*y + 1, c),
+                hw_input(2*x + 1, 2*y + 1, c)));
+
+          //cast<uint16_t>( hw_input(x * 2, y * 2, c) );
         output(x, y, c) = hw_output(x, y, c);
 
         input.dim(0).set_bounds_estimate(0, 2048*2);
@@ -69,7 +76,7 @@ public:
 
         if (auto_schedule) {
         } else {
-          clamped.trace_loads();
+          //clamped.trace_loads();
           clamped.compute_root();
         }
 

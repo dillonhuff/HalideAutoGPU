@@ -42,12 +42,17 @@ int main(int argc, char **argv) {
       }
     }
 
+    ofstream input_info("input_info.txt");
+    input_info << "x,128" << endl;
+    input_info << "y,128" << endl;
+    input_info << "b,64" << endl;
+    input_info.close();
+
     Buffer<uint16_t> output(64, 64, 64);
     max_pool_cpu(input, output);
-    assert(false);
 
-    //const long int num_runs = 100000;
-    const long int num_runs = 1;
+    const long int num_runs = 1000000;
+    //const long int num_runs = 1;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
     for (long int r = 0; r < num_runs; r++) {
