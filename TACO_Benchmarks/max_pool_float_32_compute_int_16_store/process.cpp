@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     Buffer<uint16_t> output(64, 64, 64);
     max_pool_cpu(input, output);
 
-    const long int num_runs = 1000000;
+    const long int num_runs = 4000000;
     //const long int num_runs = 1;
     __int64_t start_us = duration_cast<microseconds>(system_clock::now().time_since_epoch()).count();
 
