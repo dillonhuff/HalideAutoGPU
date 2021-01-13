@@ -34,10 +34,15 @@ int main(int argc, char **argv) {
     halide_reuse_device_allocations(nullptr, true);
 #endif
     // Input may be a PNG8
-    Buffer<PixelType> input = load_and_convert_image(argv[1]);
+    int cols = 4096; //2048;
+    int rows = 4096; //2048;
+    Buffer<PixelType> input(cols, rows);
+    for (int y = 0; y < input.height(); y++) {
+      for (int x = 0; x < input.width(); x++) {
+        input(x, y) = rand();
+      }
+    }
 
-    int cols = 2048;
-    int rows = 2048;
     Buffer<PixelType> output(cols, rows);
 
     cout << "Starting CPU..."  << endl;
