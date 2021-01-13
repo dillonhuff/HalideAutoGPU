@@ -132,11 +132,11 @@ public:
         bright_weight(x, y) = select(bright(x, y) < 128.0f, 1.0f, 0.0f);
         dark_weight(x, y) = select(dark(x, y) > 128.0f, 1.0f, 0.0f);
 
-        auto bright_pyramid = gauss_pyramid(bright);
-        auto dark_pyramid = gauss_pyramid(dark);
+        //auto bright_pyramid = gauss_pyramid(bright);
+        //auto dark_pyramid = gauss_pyramid(dark);
 
-        //auto bright_pyramid = laplace_pyramid(bright);
-        //auto dark_pyramid = laplace_pyramid(dark);
+        auto bright_pyramid = laplace_pyramid(bright);
+        auto dark_pyramid = laplace_pyramid(dark);
 
         auto bright_weight_pyramid = gauss_pyramid(bright_weight);
         auto dark_weight_pyramid = gauss_pyramid(dark_weight);
