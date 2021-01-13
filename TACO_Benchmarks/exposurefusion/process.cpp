@@ -22,6 +22,8 @@ using namespace Halide::Runtime;
 using namespace Halide::Tools;
 using namespace std::chrono;
 
+typedef uint16_t PixelType;
+
 int main(int argc, char **argv) {
     if (argc < 7) {
         printf("Usage: ./process input.png levels alpha beta timing_iterations output.png\n"
@@ -32,11 +34,11 @@ int main(int argc, char **argv) {
     halide_reuse_device_allocations(nullptr, true);
 #endif
     // Input may be a PNG8
-    Buffer<uint16_t> input = load_and_convert_image(argv[1]);
+    Buffer<PixelType> input = load_and_convert_image(argv[1]);
 
     int cols = 2048;
     int rows = 2048;
-    Buffer<uint16_t> output(cols, rows);
+    Buffer<PixelType> output(cols, rows);
 
     cout << "Starting CPU..."  << endl;
     //exposurefusion_cpu(input, output);
@@ -59,6 +61,12 @@ int main(int argc, char **argv) {
     times << num_runs << endl;
     times.close();
 
+    ofstream input_info("input_info.txt");
+    input_info << "x," << input.width() << endl;
+    input_info << "y," << input.height() << endl;
+    input_info << "b," << input.channels() << endl;
+    input_info.close();
+
     cout << "microseconds since epoch: " << end_us << endl;
     auto diff = end_us - start_us;
     cout << "diff = " << diff << endl;
@@ -66,16 +74,16 @@ int main(int argc, char **argv) {
     cout << "Done with auto schedule" << endl;
 
 
-    multi_way_bench({
-        //{"Manual", [&]() { exposurefusion(input, output); output.device_sync(); }},
-    #ifndef NO_AUTO_SCHEDULE
-        //{"Nested auto-scheduled", [&]() { exposurefusion_auto_schedule_store(input, output); output.device_sync(); }},
-       {"Auto-scheduled", [&]() { exposurefusion_auto_schedule(input, output); output.device_sync(); }},
-          {"No-fusion auto-scheduled", [&]() { exposurefusion_auto_schedule_no_fus(input, output); output.device_sync(); }},
-        //{"Simple auto-scheduled", [&]() { exposurefusion_simple_auto_schedule(input, output); output.device_sync(); }}
-    #endif
-        }
-    );
+    //multi_way_bench({
+        ////{"Manual", [&]() { exposurefusion(input, output); output.device_sync(); }},
+    //#ifndef NO_AUTO_SCHEDULE
+        ////{"Nested auto-scheduled", [&]() { exposurefusion_auto_schedule_store(input, output); output.device_sync(); }},
+       //{"Auto-scheduled", [&]() { exposurefusion_auto_schedule(input, output); output.device_sync(); }},
+          //{"No-fusion auto-scheduled", [&]() { exposurefusion_auto_schedule_no_fus(input, output); output.device_sync(); }},
+        ////{"Simple auto-scheduled", [&]() { exposurefusion_simple_auto_schedule(input, output); output.device_sync(); }}
+    //#endif
+        //}
+    //);
 
    std::cout << "Done, transferring image" << endl;
 
