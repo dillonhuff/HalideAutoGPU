@@ -20,31 +20,24 @@ const int pyramid_levels = 4;
 
 class GaussianBlur : public Halide::Generator<GaussianBlur> {
 public:
-    Input<Buffer<float>>  input{"input", 2};
-    Output<Buffer<float>> output{"output", 2};
+    Input<Buffer<uint16_t>>  input{"input", 2};
+    Output<Buffer<uint16_t>> output{"output", 2};
 
     Var x, y, c;
 
     Func downsample_fp(Func f) {
-      //Func downx, downy;
-      //downx(x, y, _) = (f(2*x-1, y, _) + 3.0f * (f(2*x, y, _) + f(2*x+1, y, _)) + f(2*x+2, y, _)) / 8.0f;
-      //downy(x, y, _) = (downx(x, 2*y-1, _) + 3.0f * (downx(x, 2*y, _) + downx(x, 2*y+1, _)) + downx(x, 2*y+2, _)) / 8.0f;
-
-      //return downy;
-      //RDom reduce(-1, 2, -1, 2);
-      ////RDom reduce(-1, 1, -1, 1);
-
-      //Func ds;
-      //ds(x, y) = cast(Float(32), (0));
-      //ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
-      //Func avg;
-      //avg(x, y) = ds(x, y) / cast(Float(32), Expr(2));
-      //return avg;
+      RDom reduce(-1, 2, -1, 2);
 
       Func ds;
-      ////ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y) + f(2*x, 2*y + 1)) / 3.0f;
-      ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
-      return ds;
+      ds(x, y) = cast(Float(32), (0));
+      ds(x, y) += f(2*x + reduce.x, 2*y + reduce.y);
+      Func avg;
+      avg(x, y) = ds(x, y) / cast(Float(32), Expr(2));
+      return avg;
+
+      //Func ds;
+      //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) / 2.0f;
+      //return ds;
     }
 
     Func random_pointwise_stage(Func f) {
@@ -57,6 +50,27 @@ public:
       Func ds;
       ds(x, y) = cast<float>(f(x / 2, y / 2));
       return ds;
+    }
+
+    Func downsample(Func f) {
+      //Func ds;
+      //ds(x, y) =
+        //f(2*x - 1, 2*y) + f(2*x, 2*y) + f(2*x + 1, 2*y) +
+        //f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1) +
+        //f(2*x - 1, 2*y + 1) + f(2*x, 2*y + 1) + f(2*x + 1, 2*y + 1);
+      //ds(x, y) = (f(2*x + 1, 2*y) + f(2*x, 2*y)) >> 1;
+      //ds(x, y) = (f(2*x, 2*y) + f(2*x + 1, 2*y + 1)) / 2;
+      //ds(x, y) = (f(2*x, 2*y) + f(2*x + 1, 2*y + 1)) / 2;
+      //return ds;
+
+      RDom reduce(-1, 2, -1, 2);
+
+      Func ds;
+      ds(x, y) = 0;
+      ds(x, y) += f(x + reduce.x, y + reduce.y);
+      Func avg;
+      avg(x, y) = ds(x, y) / Expr(9);
+      return avg;
     }
 
     vector<Func> laplace_pyramid(Func bright) {
@@ -77,23 +91,26 @@ public:
 
     vector<Func> gauss_pyramid(Func l0) {
       vector<Func> gPyramid;
-      vector<Func> gPyramid_clamped;
       gPyramid.resize(pyramid_levels);
-      gPyramid_clamped.resize(pyramid_levels);
       gPyramid[0](x, y) =
         l0(x, y);
-      gPyramid_clamped[0](x, y) =
-        l0(x, y);
+
       Expr w = input.dim(0).extent(), h = input.dim(1).extent();
       for (int j = 1; j < pyramid_levels; j++) {
+        //Func tmp_ds;
+        //tmp_ds(x, y) = 
+          //downsample_fp(gPyramid[j - 1])(x, y);
+
+          //w /= 2;
+          //h /= 2;
+        //gPyramid[j] =
+          //BoundaryConditions::repeat_edge(tmp_ds, {{0, w}, {0, h}});
+
         gPyramid[j](x, y) =
           downsample_fp(gPyramid[j - 1])(x, y);
-        w /= 2;
-        h /= 2;
-        gPyramid_clamped[j] = BoundaryConditions::repeat_edge(gPyramid[j], {{0, w}, {0, h}});
       }
 
-      return gPyramid_clamped;
+      return gPyramid;
     }
 
     void generate() {
@@ -115,11 +132,11 @@ public:
         bright_weight(x, y) = select(bright(x, y) < 128.0f, 1.0f, 0.0f);
         dark_weight(x, y) = select(dark(x, y) > 128.0f, 1.0f, 0.0f);
 
-        //auto bright_pyramid = gauss_pyramid(bright);
-        //auto dark_pyramid = gauss_pyramid(dark);
+        auto bright_pyramid = gauss_pyramid(bright);
+        auto dark_pyramid = gauss_pyramid(dark);
 
-        auto bright_pyramid = laplace_pyramid(bright);
-        auto dark_pyramid = laplace_pyramid(dark);
+        //auto bright_pyramid = laplace_pyramid(bright);
+        //auto dark_pyramid = laplace_pyramid(dark);
 
         auto bright_weight_pyramid = gauss_pyramid(bright_weight);
         auto dark_weight_pyramid = gauss_pyramid(dark_weight);
@@ -139,7 +156,11 @@ public:
 
         Func hw_output;
         hw_output(x, y) =
-          cast<float>( collapsed[0](x, y) );
+          //cast<uint16_t>( blend[0](x, y) );
+          cast<uint16_t>( collapsed[0](x, y) );
+          //cast<uint16_t>( hw_input(x, y) );
+          //cast<uint16_t>( gPyramid[0](x, y) );
+          //cast<uint16_t>( gPyramid[pyramid_levels - 1](x, y) );
         output(x, y) = hw_output(x, y);
 
         input.dim(0).set_bounds_estimate(0, 2048*2);
